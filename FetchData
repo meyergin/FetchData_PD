@@ -1,0 +1,47 @@
+import requests
+import pandas as pd
+
+
+class StockBasic:
+    def FetchStockCode(self):
+        url = "http://114.215.202.25:8082/stockCode?ex=sh,sz"
+        stockpd = pd.read_csv(url, dtype={'code': object})
+        stockCode = stockpd.code.values.tolist()
+        return stockCode
+
+
+class StockMarket:
+    def FetchStockBar(self, code, startdate, enddate):
+        startds = "&start=" + startdate
+        if enddate:
+            endds = "&end=" + enddate
+        else:
+            endds = "&end=" + startdate
+        baseurl = "http://114.215.202.25:8082/stockBar?m=1440" + startds + endds
+        if code.startswith("6"):
+            baseurl = baseurl + "&ex=sh" + "&code=" + code
+        else:
+            baseurl = baseurl + "&ex=sz" + "&code=" + code
+        # print(baseurl)
+        stockvalue = pd.read_csv(baseurl)
+        return stockvalue
+
+    def FetchAllStockBar(self, startdate, enddate):
+        stockbase = StockBasic()
+        stockcode = stockbase.FetchStockCode()
+        stockvalue = pd.DataFrame()
+        for item in stockcode:
+            stockm = StockMarket()
+            stockv = stockm.FetchStockBar(item, "20160215", "")
+            stockvalue = stockvalue.append(stockv)
+        # print(stockv)
+        # print(item)
+        return stockvalue
+
+
+ss = StockMarket()
+# print(ss.FetchAllStockBar("20160215",""))
+
+
+
+#print stockv

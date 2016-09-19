@@ -1,0 +1,44 @@
+import pandas as pd
+import pymysql
+import time
+
+#class TopList:
+ #   def FetchList(self):
+conn = pymysql.connect(host='120.26.42.64', port=3306, user='ddq360', passwd='ddq360@2015', db='ddq', charset='utf8')
+#cur = conn.cursor()
+#cur.execute("SELECT * FROM tb_stock_trading")
+
+sqlquery1 = 'select * from ('
+sqlquery2 = 'select * from tb_stock_top where time >= '
+date = time.strftime('%Y-%m-%d', time.localtime(time.time() - 24*60*60))
+sqlquery2 = sqlquery2 + '\'' + date + '\''
+sqlquery3 = ') a left join (select * from tb_stock_top_trading) b on (a.id = b.topid)'
+sqlquery = sqlquery1 + sqlquery2 + sqlquery3
+print(sqlquery)
+
+
+stocklist = pd.read_sql_query(sqlquery, conn)
+#print(stocklist)
+#print(stocklist.dtypes)
+conn.close()
+
+benchlist = pd.read_csv('/Users/Jing/Desktop/lhb.csv')
+
+#print(benchlist.columns)
+benchlist.columns = ['tradingid', 'failure', 'win', 'total', 'suc', 'suc_interval', 'fail_next', 'win_next', 'total_next', 'suc_next', 'suc_next_interval', 'tradingname']
+#print(benchlist.columns)
+#print(benchlist)
+#print(benchlist.dtypes)
+
+baselist = pd.merge(stocklist, benchlist, on='tradingid', how='left')
+#print (baselist)
+goallist = baselist[baselist.tradingname.notnull()]
+#goallist.dtype = {'stockid' : object}
+goallist.to_csv('/Users/Jing/Desktop/lhbnew.csv', index=False, encoding='utf-8')
+
+#for row in cur:
+#    print(row)
+#cur.close()
+
+
+
